@@ -65,17 +65,22 @@ python3 ntrip_checker.py --host mycaster.com --port 2101 --mountpoint MY_MOUNT -
 ### Requesting NTRIP v2.0
 To explicitly use NTRIP v2.0 (sends HTTP/1.1 with Ntrip-Version header):
 ```bash
-python3 ntrip_checker.py --host rtk2go.com --port 2101 --mountpoint Andrzej --user myemail@example.com --ntrip-version 2.0
+python3 ntrip_checker.py --host rtk2go.com --port 2101 --mountpoint Andrzej --ntrip-version 2.0
 ```
 
 ### Sending NMEA GGA (For VRS / NEAR Mountpoints)
 To transmit your current location back to the caster (e.g., Virtual Reference Station mountpoints):
 ```bash
-python3 ntrip_checker.py --host rtk2go.com --port 2101 --mountpoint Andrzej --user myemail@example.com --lat 45.0215 --lon 18.1254 --alt 120.0
+python3 ntrip_checker.py --host rtk2go.com --port 2101 --mountpoint Andrzej --lat 45.0215 --lon 18.1254 --alt 120.0
 ```
 
 ### Running with Verbose Output
 To see each RTCM message ID and metadata printed to standard output in real-time as it arrives:
 ```bash
-python3 ntrip_checker.py --host rtk2go.com --port 2101 --mountpoint Andrzej --user myemail@example.com --duration 5 --verbose
+python3 ntrip_checker.py --host rtk2go.com --port 2101 --mountpoint Andrzej --duration 5 --verbose
 ```
+
+## Scope and Limitations
+
+- **No TLS/HTTPS Support**: This utility only supports standard plaintext TCP connections (usually port 2101). It does not support secure TLS/HTTPS connections (port 443).
+- **MSM Message Dependency**: Satellite and frequency band analysis is only extracted from RTCM3 Multiple Signal Messages (MSM, types 1071–1127). Legacy RTCM messages (such as types 1001-1004) are counted in the general summary but do not contribute to the satellite/band report.
