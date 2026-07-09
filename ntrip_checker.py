@@ -146,6 +146,9 @@ def make_gga(lat: float, lon: float, alt: float = 100.0) -> str:
     if lat_min_dec >= 100000:
         lat_min_dec = 0
         lat_min_int += 1
+    if lat_min_int >= 60:
+        lat_min_int = 0
+        lat_deg += 1
     lat_dir = "N" if lat >= 0 else "S"
     lat_str = f"{lat_deg:02d}{lat_min_int:02d}.{lat_min_dec:05d}"
 
@@ -157,6 +160,9 @@ def make_gga(lat: float, lon: float, alt: float = 100.0) -> str:
     if lon_min_dec >= 100000:
         lon_min_dec = 0
         lon_min_int += 1
+    if lon_min_int >= 60:
+        lon_min_int = 0
+        lon_deg += 1
     lon_dir = "E" if lon >= 0 else "W"
     lon_str = f"{lon_deg:03d}{lon_min_int:02d}.{lon_min_dec:05d}"
 
@@ -214,9 +220,8 @@ def connect_and_handshake(
     headers.append("User-Agent: NTRIP ntrip-checker/1.0")
     headers.append("Accept: */*")
 
-    if user is not None:
-        pw = password if password is not None else ""
-        auth_str = f"{user}:{pw}"
+    if user is not None and password is not None:
+        auth_str = f"{user}:{password}"
         auth_b64 = base64.b64encode(auth_str.encode("utf-8")).decode("utf-8")
         headers.append(f"Authorization: Basic {auth_b64}")
 
