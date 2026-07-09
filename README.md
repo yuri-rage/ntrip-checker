@@ -7,6 +7,10 @@ A Python command-line utility to connect to an NTRIP caster, stream RTCM3 correc
 ## Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/yuri-rage/ntrip-checker.git
+cd ntrip-checker
+
 # Create and activate virtual environment
 python3 -m venv .venv
 source .venv/bin/activate
