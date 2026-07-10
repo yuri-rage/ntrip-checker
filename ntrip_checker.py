@@ -199,14 +199,24 @@ def connect_and_handshake(
     password: str | None = None,
     ntrip_version: str = "1.0",
     timeout: float = 5.0,
+    use_ssl: bool = False,
+    ssl_no_verify: bool = False,
 ) -> socket.socket:
     """
     Connects to the NTRIP caster and performs the HTTP handshake.
-    Supports both IPv4 and IPv6 out of the box.
+    Supports both IPv4 and IPv6 out of the box, as well as SSL/TLS.
     Returns the connected socket, or raises an error.
     """
     # Connect supporting both IPv4 and IPv6
     s = socket.create_connection((host, port), timeout=timeout)
+
+    if use_ssl or port == 443:
+        import ssl
+        if ssl_no_verify:
+            context = ssl._create_unverified_context()
+        else:
+            context = ssl.create_default_context()
+        s = context.wrap_socket(s, server_hostname=host)
 
     path = f"/{mountpoint}" if mountpoint else "/"
     headers = []
@@ -263,6 +273,8 @@ def fetch_sourcetable(
     user: str | None = None,
     password: str | None = None,
     ntrip_version: str = "1.0",
+    use_ssl: bool = False,
+    ssl_no_verify: bool = False,
 ) -> None:
     """Connects to the caster and downloads/prints the mountpoints."""
     try:
@@ -273,6 +285,8 @@ def fetch_sourcetable(
             user=user,
             password=password,
             ntrip_version=ntrip_version,
+            use_ssl=use_ssl,
+            ssl_no_verify=ssl_no_verify,
         )
 
         response = b""
@@ -283,8 +297,7 @@ def fetch_sourcetable(
             response += chunk
         s.close()
 
-        parts = response.split(b"\r\n\r\n", 1)
-        body = parts[1].decode("utf-8", errors="ignore") if len(parts) > 1 else ""
+        body = response.decode("utf-8", errors="ignore")
 
         print("\nAvailable Mountpoints (Top 25):")
         print(
@@ -374,12 +387,24 @@ def main():
     parser.add_argument(
         "--verbose", action="store_true", help="Print messages as they are received"
     )
+    parser.add_argument(
+        "--ssl", action="store_true", help="Force SSL/TLS connection (automatically enabled if port is 443)"
+    )
+    parser.add_argument(
+        "--ssl-no-verify", action="store_true", help="Disable SSL certificate verification"
+    )
 
     args = parser.parse_args()
 
     if not args.mountpoint:
         fetch_sourcetable(
-            args.host, args.port, args.user, args.password, args.ntrip_version
+            args.host,
+            args.port,
+            args.user,
+            args.password,
+            args.ntrip_version,
+            args.ssl,
+            args.ssl_no_verify,
         )
         return
 
@@ -398,6 +423,8 @@ def main():
             user=args.user,
             password=args.password,
             ntrip_version=args.ntrip_version,
+            use_ssl=args.ssl,
+            ssl_no_verify=args.ssl_no_verify,
         )
 
         # Only send NMEA GGA sentence if coordinates were specified on CLI
@@ -458,7 +485,7 @@ def main():
 
                     if args.verbose:
                         name = RTCM_MSG_NAMES.get(identity, "Unknown RTCM Message")
-                        print(f"[{elapsed:5.1f}s] MSG {identity:<4} ({name})")
+                        print(f"[{elapsed:5.1f}s] MSG {identity:<4} ({name}) - {len(raw)} bytes")
 
                     if parsed.ismsm:
                         try:

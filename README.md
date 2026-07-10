@@ -52,6 +52,8 @@ options:
   --lon LON             Longitude for NMEA GGA sentence (must specify both lat and lon to send GGA)
   --alt ALT             Elevation (meters) for NMEA GGA sentence (default: 100.0)
   --verbose             Print messages as they are received
+  --ssl                 Force SSL/TLS connection (automatically enabled if port is 443)
+  --ssl-no-verify       Disable SSL certificate verification
 ```
 
 ## Examples
@@ -68,6 +70,12 @@ To explicitly use NTRIP v2.0 (sends HTTP/1.1 with Ntrip-Version header):
 python3 ntrip_checker.py --host rtk2go.com --port 2101 --mountpoint Andrzej --ntrip-version 2.0
 ```
 
+### Connecting to TLS/HTTPS Casters (e.g. igs-ip.net on port 443)
+Secure connections are supported and automatically enabled when using port 443:
+```bash
+python3 ntrip_checker.py --host igs-ip.net --port 443 --mountpoint BKG_Correction --user your_user --password your_password
+```
+
 ### Sending NMEA GGA (For VRS / NEAR Mountpoints)
 To transmit your current location back to the caster (e.g., Virtual Reference Station mountpoints):
 ```bash
@@ -75,12 +83,12 @@ python3 ntrip_checker.py --host rtk2go.com --port 2101 --mountpoint Andrzej --la
 ```
 
 ### Running with Verbose Output
-To see each RTCM message ID and metadata printed to standard output in real-time as it arrives:
+To see each RTCM message ID, byte length, and metadata printed to standard output in real-time as it arrives:
 ```bash
 python3 ntrip_checker.py --host rtk2go.com --port 2101 --mountpoint Andrzej --duration 5 --verbose
 ```
 
 ## Scope and Limitations
 
-- **No TLS/HTTPS Support**: This utility only supports standard plaintext TCP connections (usually port 2101). It does not support secure TLS/HTTPS connections (port 443).
+- **TLS/HTTPS Support**: Fully supports secure connections on port 443 or explicitly via the `--ssl` flag. You can bypass self-signed certificate warnings using the `--ssl-no-verify` flag.
 - **MSM Message Dependency**: Satellite and frequency band analysis is only extracted from RTCM3 Multiple Signal Messages (MSM, types 1071–1127). Legacy RTCM messages (such as types 1001-1004) are counted in the general summary but do not contribute to the satellite/band report.
